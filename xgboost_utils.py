@@ -352,8 +352,8 @@ if __name__=='__main__':
     # ph3: 微调后的模型做预测,默认是用已经经过预先筛选的变量，
     train_pred, test_pred, oot_pred, model = xgboost_utilss.predicts(train, test, oot)
     # ph4: 转换分数
-    xgb_scorecards = xgb_scorecard(detail_path='./data/details_hds_xgb',
-                                   result_save_path='./data/modelResults_hds_xgb',
-                                   force_keep_col=['身份证', '姓名', '回溯日期', '手机号', 'product', 'dataSet', 'target'])
+    xgb_scorecards = xgb_scorecard(detail_path='./data/details',
+                                   result_save_path='./data/modelResults',
+                                   force_keep_col=['dataSet', 'target'])
     result = xgb_scorecards.xgb_scores(train, test, oot)
 
