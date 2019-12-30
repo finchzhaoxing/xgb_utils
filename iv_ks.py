@@ -10,8 +10,7 @@ import math
 import os
 import pandas as pd
 import matplotlib.pyplot as plt
-from ScoreCard_new.dataLoading import load, excelAddSheet
-from ScoreCard_new.validationUtils import get_ivs, load_csv, dumps, loads
+from dataLoading import dumps
 import numpy as np
 def bin_iv_ks_inone(data1,how='cut',dropcol=['id_card_no','card_name','target'], verbose=True):
     data=data1.copy()
