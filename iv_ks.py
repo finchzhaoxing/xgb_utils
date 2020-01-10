@@ -99,10 +99,10 @@ def scorebins(trainscore,testscore,valscore=None,prob_score='score',cutway='cut1
     except:
         print("**maybe the X donot contain columns target and score**")
     binall=pd.DataFrame()
-    bintrain = toad.metrics.KS_bucket(trainscore[prob_score],trainscore['target'],bucket=10,method='quantile')
-    bintest = toad.metrics.KS_bucket(testscore[prob_score],testscore['target'],bucket=10,method='quantile')
-    # bintrain,ivs2=bin_iv_ks_inone(data1=trainscore,how=cutway,dropcol=['target'])
-    # bintest,ivs2=bin_iv_ks_inone(data1=testscore,how=cutway,dropcol=['target'])
+    # bintrain = toad.metrics.KS_bucket(trainscore[prob_score],trainscore['target'],bucket=10,method='quantile')
+    # bintest = toad.metrics.KS_bucket(testscore[prob_score],testscore['target'],bucket=10,method='quantile')
+    bintrain,ivs2=bin_iv_ks_inone(data1=trainscore,how=cutway,dropcol=['target'])
+    bintest,ivs2=bin_iv_ks_inone(data1=testscore,how=cutway,dropcol=['target'])
     bintrain['part']='train'
     bintest['part']='test'
     binall=binall.append(bintrain)
@@ -112,8 +112,8 @@ def scorebins(trainscore,testscore,valscore=None,prob_score='score',cutway='cut1
     if valscore is None:
         pass
     else:
-        # binval,ivs2=bin_iv_ks_inone(data1=valscore[['target',prob_score]],how=cutway,dropcol=['target'])
-        binval = toad.metrics.KS_bucket(valscore[prob_score],valscore['target'],bucket=10,method='quantile')
+        binval,ivs2=bin_iv_ks_inone(data1=valscore[['target',prob_score]],how=cutway,dropcol=['target'])
+        # binval = toad.metrics.KS_bucket(valscore[prob_score],valscore['target'],bucket=10,method='quantile')
         binval['part']='val'
         binall=binall.append(binval)
         scoreplot(valscore[prob_score],figure_save_path=figure_save_path,title='ootscore')
