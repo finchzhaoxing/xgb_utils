@@ -220,7 +220,7 @@ class xgb_utils(object):
             else:
                 delvars.update(self.delvar)
         if roughsele or check:
-            pd.Series(delvars).to_csv(self.detail_path+'/剔除变量细节.csv', encoding='utf8')
+            pd.Series(delvars).to_csv(self.detail_path +'/剔除变量细节.csv', encoding='utf8')
         if use_presele:
             cols = pickle.load(open(self.result_save_path + '/final_feature.pkl', 'rb'))
             train = train[cols + self.force_keep_col]
@@ -247,7 +247,8 @@ class xgb_utils(object):
                         print(model)
                         model.fit(trainX, trainY, eval_set=[(test.drop(self.force_keep_col, axis=1), test['target']),
                                                                (oot.drop(self.force_keep_col, axis=1), oot['target'])],
-                                     eval_metric=['auc'], early_stopping_rounds=20)
+                                                               eval_metric=['auc']
+                                                               , early_stopping_rounds=50)
                         results = self.auc_ks_cal(model, train, test, oot, verbose=False)
                         ksresult = ksresult.append(results.T.loc['ks',:])
                         aucresult = aucresult.append(results.T.loc['auc', :])
@@ -260,13 +261,13 @@ class xgb_utils(object):
                     ksresult.to_excel(self.detail_path+'/手动调整'+i+'模型结果细节.xlsx',index=False)
                     print(ksresult)
             exec("model." + i + " = " + str(ksresult.head(1).get('j').values[0]))
+            pickle.dump(model, open(self.result_save_path + '/finetune'+i+'='+str(ksresult.head(1).get('j').values[0])+'_best_xgb.pkl', 'wb'))
         print(model)
-        pickle.dump(model, open(self.result_save_path + '/finetune'+i+'='+str(ksresult.head(1).get('j').values[0])+'_best_xgb.pkl', 'wb'))
         pickle.dump(model, open(self.result_save_path + '/final_best_xgb.pkl', 'wb'))
         self.model_performance(model)
         model.fit(trainX, trainY, eval_set=[(test.drop(self.force_keep_col, axis=1), test['target']),
                                             (oot.drop(self.force_keep_col, axis=1), oot['target'])],
-                  eval_metric=['auc'], early_stopping_rounds=10)
+                  eval_metric=['auc'], early_stopping_rounds=50)
         results = self.auc_ks_cal(model, train, test, oot, verbose=False)
         print("final feature:",len(list(trainX.columns)))
         print(results)
@@ -326,6 +327,7 @@ class xgb_utils(object):
         :param train: 待预测的样本,需要包含forcekeepcol
         :return: ,如果包含target,返回aucks预测值否则只返回预测值
         '''
+        print("Using model from " + self.result_save_path + '/final_best_xgb.pkl')
         final_col = pickle.load(open(self.result_save_path + '/final_feature.pkl', 'rb'))
         model = pickle.load(open(self.result_save_path + '/final_best_xgb.pkl', 'rb'))
         train = train[final_col+self.force_keep_col]
@@ -336,8 +338,9 @@ class xgb_utils(object):
                                                                        returns=True)
             return train_pred, test_pred, oot_pred, model
         else:
-            train['prob'] = model.predict(model.predict_proba(train[final_col])[:,1])
+            train['prob'] = model.predict_proba(train[final_col])[:,1]
             return train['prob'],None
+
 
 
 if __name__=='__main__':

@@ -72,11 +72,12 @@ class xgb_scorecard(xgb_utils):
                                basescore=600,
                                PDO=50,
                                targetName='target')
-
-        cardscorebins = scorebins(score_train, score_test, score_val, prob_score='score',
-                                  figure_save_path=self.result_save_path)
         cardscorebins_prob = scorebins(score_train, score_test, score_val, prob_score='prob', cutway='cut1',
                                   figure_save_path=self.result_save_path)
+        cardscorebins = scorebins(score_train, score_test, score_val, prob_score='score',cutway='cut1',
+                                  figure_save_path=self.result_save_path)
+        # cardscorebins_prob = scorebins(score_train, score_test, score_val, prob_score='prob', cutway='cut1',
+        #                           figure_save_path=self.result_save_path)
         psitable = calculate_psi(score_train.score, score_test.score, n_cut=10, varN='train_test')
         psitable_val = calculate_psi(score_test.score, score_val.score, n_cut=10, varN='test_oot')
         psitable_p = calculate_psi(score_train.prob, score_test.prob, n_cut=10, varN='prob_train_test')
@@ -91,7 +92,7 @@ class xgb_scorecard(xgb_utils):
         except Exception  as e:
             print(" **maybe the model_performance.xlsx file not found** ")
         dataFrame2sheet(self.detail_path+'/summary.xlsx',[bins,ivs.reset_index(),model_performance,psitable,cardscorebins,cardscorebins_prob],
-                        ['入模标签分箱','入模标签表现','模型表现','psi表现','分数分布','概率分布'])
+                        ['入模标签分箱','入模标签表现','模型表现','psi','分数分布','概率分布'])
 
         scores = score_train.append(score_test)
         scores = scores.append(score_val)
