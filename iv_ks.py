@@ -19,15 +19,15 @@ def quantile_cut(df,col='score', bins=10):
     返回分好的Bins
     '''
     df = df.to_frame()
-    cutpoints = df.quantile(np.arange(0,1,1/bins))
-    bucket = np.digitize(df[col], list(z)[1:])    
+    cutpoints = df[col].quantile(np.arange(0,1,1/bins))
+    bucket = np.digitize(df[col], list(cutpoints)[1:])    
     df['bucketnum'] = bucket
     grouped = df.groupby('bucketnum')[col].min().to_dict()
     print(grouped,bucket)
     df['min'] = df['bucketnum'].apply(lambda x:round(grouped.get(x),6))
     grouped = df.groupby('bucketnum')[col].max().to_dict()
     df['max'] = df['bucketnum'].apply(lambda x:round(grouped.get(x),6))
-    df['bins'] = df['min'].astype(str) + '|' + df['max'].astype()
+    df['bins'] = df['min'].astype(str) + '|' + df['max'].astype(str)
     return df['bins'], cutpoints
 
 def bin_iv_ks_inone(data1,how='cut',dropcol=['id_card_no','card_name','target'], verbose=True):
