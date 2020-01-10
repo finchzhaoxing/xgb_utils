@@ -8,7 +8,6 @@ Created on Tue Sep 24 20:59:37 2019
 
 import math
 import os
-import toad
 import pandas as pd
 import matplotlib.pyplot as plt
 from dataLoading import dumps
