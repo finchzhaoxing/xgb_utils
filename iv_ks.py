@@ -72,8 +72,8 @@ def bin_iv_ks_inone(data1,how='cut',dropcol=['id_card_no','card_name','target'],
         iv=binwoe.iv.sum()
         ks=abs(binwoe.ks).max()
         bins=bins.append(binwoe.sort_values('bins'))
-        ivs.loc[i,'iv']=iv
-        ivs.loc[i,'ks']=ks
+        ivs.loc[i,'iv'] = iv
+        ivs.loc[i,'ks'] = ks
         ivs.loc[i,'覆盖率']=sum(data[i]>0)/data.shape[0]
     ivs=ivs.sort_values(by='iv',ascending=False)
     return bins,ivs
@@ -88,7 +88,7 @@ def scoreplot(trainscore,title,figure_save_path=None):
     if figure_save_path is not None:
         dumps(figure_save_path, plt, adds='/png' + '/' + title + '.png')
     plt.close()
-    
+
 def scorebins(trainscore,testscore,valscore=None,prob_score='score',cutway='cut1',figure_save_path=None):
     '''实现分数的划分区间+出分数的分布图
     -trainscore 三个分数都是score,target两列组成
@@ -99,8 +99,8 @@ def scorebins(trainscore,testscore,valscore=None,prob_score='score',cutway='cut1
     except:
         print("**maybe the X donot contain columns target and score**")
     binall=pd.DataFrame()
-    # bintrain = toad.metrics.KS_bucket(trainscore[prob_score],trainscore['target'],bucket=10,method='quantile')
-    # bintest = toad.metrics.KS_bucket(testscore[prob_score],testscore['target'],bucket=10,method='quantile')
+#    bintrain = toad.metrics.KS_bucket(trainscore[prob_score],trainscore['target'],bucket=10,method='quantile')
+#    bintest = toad.metrics.KS_bucket(testscore[prob_score],testscore['target'],bucket=10,method='quantile')
     bintrain,ivs2=bin_iv_ks_inone(data1=trainscore,how=cutway,dropcol=['target'])
     bintest,ivs2=bin_iv_ks_inone(data1=testscore,how=cutway,dropcol=['target'])
     bintrain['part']='train'
@@ -113,7 +113,7 @@ def scorebins(trainscore,testscore,valscore=None,prob_score='score',cutway='cut1
         pass
     else:
         binval,ivs2=bin_iv_ks_inone(data1=valscore[['target',prob_score]],how=cutway,dropcol=['target'])
-        # binval = toad.metrics.KS_bucket(valscore[prob_score],valscore['target'],bucket=10,method='quantile')
+#        binval = toad.metrics.KS_bucket(valscore[prob_score],valscore['target'],bucket=10,method='quantile')
         binval['part']='val'
         binall=binall.append(binval)
         scoreplot(valscore[prob_score],figure_save_path=figure_save_path,title='ootscore')
@@ -173,7 +173,7 @@ def corr_filter(data01,testcol1,ivs1):
                     deletefea.append(i)
         k=k+1
     var_tovif=[item for item in testcol1 if item not in set(deletefea)]
-    return  var_tovif
+    return var_tovif
 
 # 看分布差异
 def filter_extreme_percentile(series,min = 0.025,max = 0.975): #百分位法
@@ -187,16 +187,18 @@ def plots(x1,x2,title):
     plt.hist(x1,**kwargs)
     plt.hist(x2,**kwargs)
     plt.title(title)
-    plt.legend(['asssit','target'])    
+    plt.legend(['asssit','target'])
 
 
-if __name__=='main':    
+if __name__=='main':
     trainscore=score_train[['target','score']]
     bintrain,ivs2=bin_iv_ks_inone(data1=trainscore,how='cut',dropcol=['target'])
     scoreplot(trainscore['score'],figure_save_path=figure_save_path,title='trainscore')
     for i in feature_lst:
         plots(filter_extreme_percentile(dfTrainAssist[i][dfTrainAssist[i]>=0],min = 0.025,max = 0.85),\
-  filter_extreme_percentile(dfTrainTarget[i][dfTrainTarget[i]>=0],min = 0.025,max = 0.85),i)
+    filter_extreme_percentile(dfTrainTarget[i][dfTrainTarget[i]>=0],min = 0.025,max = 0.85),i)
+
+
 
 
 

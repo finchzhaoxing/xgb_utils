@@ -226,6 +226,7 @@ class xgb_utils(object):
             train = train[cols + self.force_keep_col]
             test = test[cols + self.force_keep_col]
             oot = oot[cols + self.force_keep_col]
+            self.final_col = cols
         else:
             pickle.dump(list(train.drop(self.force_keep_col, axis=1).columns),
                         open(self.result_save_path + '/final_feature.pkl', 'wb'))
@@ -241,14 +242,16 @@ class xgb_utils(object):
             for i in parm.keys():
                 if type(parm[i]) == int or type(parm[i]) == float:
                     exec("model." + i + "=" + str(parm[i]))
+                    best_iters = []
                 else:
                     for j in parm[i]:
                         exec("model."+i+"="+str(j))
                         print(model)
                         model.fit(trainX, trainY, eval_set=[(test.drop(self.force_keep_col, axis=1), test['target']),
                                                                (oot.drop(self.force_keep_col, axis=1), oot['target'])],
-                                                               eval_metric=['auc']
+                                                               eval_metric=['auc'], verbose=True
                                                                , early_stopping_rounds=50)
+                        best_iters.append(model.best_iteration)
                         results = self.auc_ks_cal(model, train, test, oot, verbose=False)
                         ksresult = ksresult.append(results.T.loc['ks',:])
                         aucresult = aucresult.append(results.T.loc['auc', :])
@@ -257,6 +260,7 @@ class xgb_utils(object):
                     ksresult = pd.concat([ksresult.reset_index(drop=True),aucresult.reset_index(drop=True)],axis=1 )
                     ksresult['ks差'] =ksresult['train'] - ksresult['test']
                     ksresult['j'] = list(parm[i])
+                    ksresult['best_iters'] = best_iters
                     ksresult = ksresult.sort_values(by=['ks差','trainauc'],ascending=[True,False])
                     ksresult.to_excel(self.detail_path+'/手动调整'+i+'模型结果细节.xlsx',index=False)
                     print(ksresult)
@@ -267,7 +271,8 @@ class xgb_utils(object):
         self.model_performance(model)
         model.fit(trainX, trainY, eval_set=[(test.drop(self.force_keep_col, axis=1), test['target']),
                                             (oot.drop(self.force_keep_col, axis=1), oot['target'])],
-                  eval_metric=['auc'], early_stopping_rounds=50)
+                  eval_metric=['auc']
+                  , early_stopping_rounds=50, verbose=True)
         results = self.auc_ks_cal(model, train, test, oot, verbose=False)
         print("final feature:",len(list(trainX.columns)))
         print(results)
