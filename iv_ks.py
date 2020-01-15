@@ -191,7 +191,7 @@ def plots(x1,x2,title):
 
 
 if __name__=='main':
-    '''样例'''
+    '''使用样例'''
     trainscore=score_train[['target','score']]
     bintrain,ivs2=bin_iv_ks_inone(data1=trainscore,how='cut',dropcol=['target'])
     scoreplot(trainscore['score'],figure_save_path=figure_save_path,title='trainscore')
