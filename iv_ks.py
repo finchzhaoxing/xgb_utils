@@ -23,7 +23,7 @@ def quantile_cut(df,col='score', bins=10):
     bucket = np.digitize(df[col], list(cutpoints)[1:])    
     df['bucketnum'] = bucket
     grouped = df.groupby('bucketnum')[col].min().to_dict()
-    print(grouped,bucket)
+#    print(grouped,bucket)
     df['min'] = df['bucketnum'].apply(lambda x:round(grouped.get(x),6))
     grouped = df.groupby('bucketnum')[col].max().to_dict()
     df['max'] = df['bucketnum'].apply(lambda x:round(grouped.get(x),6))
@@ -48,11 +48,11 @@ def bin_iv_ks_inone(data1,how='cut',dropcol=['id_card_no','card_name','target'],
                 print("删除 "+i+" :唯一值少于3个或者缺失率大于0.2")
             continue
         if how=='cut':
-            a,b=pd.cut(data[i],10, retbins=True)
+            a,b=pd.cut(data[i],20, retbins=True)
         elif how=='cut1':
-            a,b = quantile_cut(data[i], col=i, bins=10)
+            a,b = quantile_cut(data[i], col=i, bins=25)
         else:
-            a,b=pd.qcut(data[i],10,duplicates='drop',retbins=True)
+            a,b=pd.qcut(data[i],20,duplicates='drop',retbins=True)
         data['bins']=a
         temp=data[['bins','target']]
         binwoe=pd.pivot_table(temp,index=['bins'],columns=['target'],aggfunc=len,fill_value=1)
@@ -80,13 +80,14 @@ def bin_iv_ks_inone(data1,how='cut',dropcol=['id_card_no','card_name','target'],
 
 def scoreplot(trainscore,title,figure_save_path=None):
     plt.figure(num=1, figsize=(8, 4))
-    trainscore.hist(bins=15,label='train',histtype = 'bar',align = 'mid',density =True)
+    trainscore.hist(bins=10,label='train',histtype = 'bar',align = 'mid',density =True)
     trainscore.plot(kind='kde',style='r')
     plt.title(title)
     plt.xlabel('score')
     plt.xlim(trainscore.min()-trainscore.min()/10,trainscore.max()+trainscore.max()/10)
     if figure_save_path is not None:
         dumps(figure_save_path, plt, adds='/png' + '/' + title + '.png')
+    plt.show()
     plt.close()
 
 def scorebins(trainscore,testscore,valscore=None,prob_score='score',cutway='cut1',figure_save_path=None):
@@ -115,6 +116,7 @@ def scorebins(trainscore,testscore,valscore=None,prob_score='score',cutway='cut1
         binval,ivs2=bin_iv_ks_inone(data1=valscore[['target',prob_score]],how=cutway,dropcol=['target'])
 #        binval = toad.metrics.KS_bucket(valscore[prob_score],valscore['target'],bucket=10,method='quantile')
         binval['part']='val'
+        print(ivs2)
         binall=binall.append(binval)
         scoreplot(valscore[prob_score],figure_save_path=figure_save_path,title='ootscore')
     return binall
