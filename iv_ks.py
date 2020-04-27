@@ -86,7 +86,7 @@ def scoreplot(trainscore,title,figure_save_path=None):
     plt.xlabel('score')
     plt.xlim(trainscore.min()-trainscore.min()/10,trainscore.max()+trainscore.max()/10)
     if figure_save_path is not None:
-        dumps(figure_save_path, plt, adds='/png' + '/' + title + '.png')
+        dumps(figure_save_path, plt, adds='/' + title + '.png')
     plt.show()
     plt.close()
 
