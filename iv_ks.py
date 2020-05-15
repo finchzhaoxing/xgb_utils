@@ -20,7 +20,12 @@ def quantile_cut(df,col='score', bins=10):
     '''
     df = df.to_frame()
     cutpoints = df[col].quantile(np.arange(0,1,1/bins))
-    bucket = np.digitize(df[col], list(cutpoints)[1:])    
+    decimals = 4 #某些变量单值占比太大，大部分分位点是同一个精度不同的值,缩小精度合并分割点
+    try:
+        bucket = np.digitize(df[col], list(cutpoints)[1:])
+    except:
+        cutpoints = cutpoints.apply(lambda x:round(x,decimals)).drop_duplicates()
+        bucket = np.digitize(df[col], list(cutpoints)[1:])    
     df['bucketnum'] = bucket
     grouped = df.groupby('bucketnum')[col].min().to_dict()
 #    print(grouped,bucket)
