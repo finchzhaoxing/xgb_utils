@@ -48,14 +48,14 @@ def bin_iv_ks_inone(data1,how='cut',dropcol=['id_card_no','card_name','target'],
         #     continue
         if verbose:
             print(i)
-        if len(data[i].unique())<=2 or sum(data[i]>0)/data.shape[0]<0.20:
+        if len(data[i].unique())<2 or sum(data[i]>0)/data.shape[0]<0.10:
             if verbose:
                 print("删除 "+i+" :唯一值少于3个或者缺失率大于0.2")
             continue
         if how=='cut':
             a,b=pd.cut(data[i],20, retbins=True)
         elif how=='cut1':
-            a,b = quantile_cut(data[i], col=i, bins=25)
+            a,b = quantile_cut(data[i], col=i, bins=20)
         else:
             a,b=pd.qcut(data[i],20,duplicates='drop',retbins=True)
         data['bins']=a
@@ -63,14 +63,16 @@ def bin_iv_ks_inone(data1,how='cut',dropcol=['id_card_no','card_name','target'],
         binwoe=pd.pivot_table(temp,index=['bins'],columns=['target'],aggfunc=len,fill_value=1)
         binwoe.columns=list(binwoe.columns)
         binwoe=binwoe.reset_index()
-        binwoe['badrate']=binwoe[1]/binwoe[1].sum()
-        binwoe['goodrate']=binwoe[0]/binwoe[0].sum()
+        binwoe['badrate']=binwoe[1]/(binwoe[1]+binwoe[0])
+        binwoe['goodrate']=binwoe[0]/(binwoe[1]+binwoe[0])
+        binwoe['goodpct']=binwoe[0]/binwoe[0].sum()
+        binwoe['badpct']=binwoe[1]/binwoe[1].sum()
         binwoe['total_pct']=(binwoe[1]+binwoe[0])/data[i].shape[0]
         binwoe['odds']=binwoe['badrate']/binwoe['goodrate']
-        binwoe['woe']=(binwoe['badrate']/binwoe['goodrate']).apply(lambda x:math.log(x))
-        binwoe['badprob_cum']=binwoe['badrate'].cumsum()
-        binwoe['goodprob_cum']=binwoe['goodrate'].cumsum()
-        binwoe['iv']=(binwoe['badrate']-binwoe['goodrate'])*binwoe['woe']
+        binwoe['woe']=(binwoe['badpct']/binwoe['goodpct']).apply(lambda x:math.log(x))
+        binwoe['badprob_cum']=binwoe['badpct'].cumsum()
+        binwoe['goodprob_cum']=binwoe['goodpct'].cumsum()
+        binwoe['iv']=(binwoe['badpct']-binwoe['goodpct'])*binwoe['woe']
         binwoe['ks']=binwoe['badprob_cum']-binwoe['goodprob_cum']
         binwoe['feature']=i
         binwoe=pd.DataFrame(binwoe)
