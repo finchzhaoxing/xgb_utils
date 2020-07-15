@@ -33,6 +33,7 @@ def quantile_cut(df,col='score', bins=10):
     grouped = df.groupby('bucketnum')[col].max().to_dict()
     df['max'] = df['bucketnum'].apply(lambda x:round(grouped.get(x),6))
     df['bins'] = df['min'].astype(str) + '|' + df['max'].astype(str)
+    df.loc[df[col]!=df[col], 'bins'] = 'missing'
     return df['bins'], cutpoints
 
 def bin_iv_ks_inone(data1,how='cut',dropcol=['id_card_no','card_name','target'], verbose=True):
@@ -48,7 +49,7 @@ def bin_iv_ks_inone(data1,how='cut',dropcol=['id_card_no','card_name','target'],
         #     continue
         if verbose:
             print(i)
-        if len(data[i].unique())<2 or sum(data[i]>0)/data.shape[0]<0.10:
+        if data[i].nunique()<2 or sum(data[i]>0)/data.shape[0]<0.10:
             if verbose:
                 print("删除 "+i+" :唯一值少于3个或者缺失率大于0.2")
             continue
@@ -58,7 +59,8 @@ def bin_iv_ks_inone(data1,how='cut',dropcol=['id_card_no','card_name','target'],
             a,b = quantile_cut(data[i], col=i, bins=20)
         else:
             a,b=pd.qcut(data[i],20,duplicates='drop',retbins=True)
-        data['bins']=a
+        a = a.replace(np.nan,'missing') #cut和qcut需要这个处理
+        data['bins']=a.astype(str)
         temp=data[['bins','target']]
         binwoe=pd.pivot_table(temp,index=['bins'],columns=['target'],aggfunc=len,fill_value=1)
         binwoe.columns=list(binwoe.columns)
@@ -148,6 +150,7 @@ def psi_cal(train,test,dropcol):
                 continue
             print(i)
             a0,b0 = pd.qcut(train[i],10,duplicates='drop',retbins=True)
+            b0 = [float('-inf')] + list(b0) + [float('inf')]
             a,b = pd.cut(train[i],b0,duplicates='drop',retbins=True)
             temp = a.value_counts().sort_index().reset_index()
             temp.rename(columns={i:'A'}, inplace=True)
@@ -159,7 +162,11 @@ def psi_cal(train,test,dropcol):
             temp['A_Blog'] = np.log(temp['A_pct']/temp['B_pct'])
             temp['exp'] = (temp['A_pct'] - temp['B_pct'])*temp['A_Blog']
             temp['psi'] = temp['exp'].sum()
-            temp['var'] = i 
+            temp['var'] = i
+            if temp['exp'].sum() > 10:
+                temp['psi'] = temp[temp['exp'] <2 ]['exp'].sum()
+            else:
+                temp['psi'] = temp['exp'].sum()
             psitable = psitable.append(temp)
         else:
             print("no float dtypes pass:"+i)
